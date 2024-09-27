@@ -10,10 +10,23 @@ services:
       - ./app:/opt/gugik2osm/app
       - ./web:/opt/gugik2osm/web
       - ./processing:/opt/gugik2osm/git/processing
+      - ./log:/opt/gugik2osm/log
     stdin_open: true
     tty: true
     depends_on:
       - db
+    environment:
+      - PGDATABASE=gugik2osm
+      - PGHOSTADDR=db
+      - PGPORT=25432
+      - PGUSER=postgres
+      - PGUSER_RO=postgres
+      - PGPASSWORD=1234
+      - PGPASSWORD_RO=1234
+      - TERYTUSER=''
+      - TERYTPASSWORD=''
+    networks:
+      - default
   db:
     container_name: db
     image: kartoza/postgis
@@ -27,5 +40,7 @@ services:
     shm_size: '4gb'
     volumes:
       - ./setup-db.sql:/docker-entrypoint-initdb.d/setup-db.sql
+    networks:
+      - default
 
 

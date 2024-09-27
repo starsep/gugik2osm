@@ -128,7 +128,7 @@ Można użyć PostgreSQL+PostGIS zainstalowanego bezpośrednio na maszynie lub u
 ### Uruchomienie docker-compose
 `docker compose up` uruchomi kontenery z aplikacją i bazą danych.
 
-Pliki w folderach app, web oraz processing będą zamontowane, więc zmiany w tych plikach będą od razu widoczne w kontenerze.
+Pliki w folderach app, web, log oraz processing będą zamontowane, więc zmiany w tych plikach będą od razu widoczne w kontenerze.
 
 Aplikacja będzie dostępna pod adresem http://localhost:45000.
 
@@ -143,23 +143,10 @@ Baza: gis
 Przywracamy kilka wybranych tabel i indeksów do schematów public i prg:
 ```
 pg_restore --jobs 2 --no-owner -n public -d gis -h localhost -p 25432 -U postgres db.bak
-```
-```
 pg_restore --jobs 2 --no-owner -n prg -t delta -I delta_gis -I delta_lokalnyid -I delta_simc -d gis -h localhost -p 25432 -U postgres db.bak
-```
-```
 pg_restore --jobs 2 --no-owner -n teryt -d gis -h localhost -p 25432 -U postgres db.bak
 ```
-Na końcu trzeba podać ścieżkę do pliku, jeżeli nie znajduje się w tym folderze, w którym mamy otworzoną konsole.
-
-#### Przygotowanie pliku .env
-Najpierw przygotowujemy plik _.env_ w folderze _conf/_ na podstawie _.env_example_ gdzie podajemy IP bazy PostgreSQL, użytkownika, hasło oraz nazwę bazy danych.
-
-IP podajemy dla kontenera od bazy danych (jeżeli baza była uruchamiana instrukcjami powyżej). Można to sprawdzić komendą: 
-```docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' postgis ```
-(gdzie postgis to nazwa kontenera z bazą danych).
-
-Zwróć uwagę, że podajemy port, pod którym postgres jest uruchomiony w kontenerze, ponieważ kontenery rozmawiają ze sobą w jednej sieci wirtualnej, trochę inaczej niż kontener z hostem.
+db.bak to ścieżka do pliku backupu bazy danych.
 
 #### Uruchomienie kontenera z aplikacją
 Aby uruchomić coś w kontenerze z aplikacją możesz użyć komendy `docker compose exec -it app bash`.
