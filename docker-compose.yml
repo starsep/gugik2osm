@@ -1,0 +1,29 @@
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "45000:80"
+    volumes:
+      - ./app:/opt/gugik2osm/app
+      - ./web:/opt/gugik2osm/web
+      - ./processing:/opt/gugik2osm/git/processing
+    entrypoint:
+      - bash
+    stdin_open: true
+    tty: true
+  db:
+    container_name: db
+    image: kartoza/postgis
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=1234
+      - POSTGRES_DBNAME=gis
+      - MAINTENANCE_WORK_MEM=512MB
+    ports:
+      - "25432:5432"
+    shm_size: '4gb'
+
+
