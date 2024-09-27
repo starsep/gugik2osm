@@ -12,6 +12,8 @@ services:
       - ./processing:/opt/gugik2osm/git/processing
     stdin_open: true
     tty: true
+    depends_on:
+      - db
   db:
     container_name: db
     image: kartoza/postgis
