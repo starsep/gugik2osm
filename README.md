@@ -125,29 +125,22 @@ Lokalne środowisko deweloperskie można uruchomić w kontenerach Docker. Konten
 Bazę danych można odtworzyć z [backupu](https://budynki.openstreetmap.org.pl/dane/dbbackup/).
 Można użyć PostgreSQL+PostGIS zainstalowanego bezpośrednio na maszynie lub utworzyć kontener Docker z bazą (co pewnie jest rozwiązaniem prostszym skoro i tak mamy zainstalowanego Dockera, żeby odpalić aplikację).
 
-#### Uruchomienie kontenera z Postgisem:
-```
-docker run --name "postgis" --shm-size=4g -e MAINTAINANCE_WORK_MEM=512MB -p 25432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASS=1234 -e POSTGRES_DBNAME=gis -d -t kartoza/postgis
-```
---name - nadaje nazwę dla kontenera, można wybrać dowolną  
---shm-size=4g - dodatkowy parametr zwiększający ilość miejsca tymczasowego, raczej nie jest niezbędny, ale nie zaszkodzi  
--e MAINTAINANCE_WORK_MEM=512MB - zwiększamy dostępną pamięć dla procesów budujących indeksy itp, nie jest niezbędne, ale może się przydać  
--p 25432:5432 - mapujemy porty, numer po lewej to ten którym się będziemy mogli połączyć do bazy z naszego systemu  
--e POSTGRES_USER=postgres - nazwa domyślnego użytkownika dla bazy PostgreSQL  
--e POSTGRES_PASS=1234 - hasło dla powyższego  
--e POSTGRES_DBNAME=gis - tworzy od razu nową bazę (z odblokowanym rozszerzenim PostGIS)  
--d - uruchamia kontener w tle dzięki czemu będzie można zamknąć okno konsoli bez zatrzymywania bazy  
--t kartoza/postgis - nazwa obrazu do uruchomienia, korzystamy z obrazu od razu skonfigurowanego z bazą PostgreSQL i dodatkiem PostGIS  
+### Uruchomienie docker-compose
+`docker compose up` uruchomi kontenery z aplikacją i bazą danych.
+
+Pliki w folderach app, web oraz processing będą zamontowane, więc zmiany w tych plikach będą od razu widoczne w kontenerze.
+
+Aplikacja będzie dostępna pod adresem http://localhost:45000.
+
+#### Dostęp do testowej bazy danych
+Host: localhost
+Port: 25432
+Użytkownik: postgres
+Hasło: 1234
+Baza: gis
 
 #### Przywrócenie niezbędnych tabel:
-Najpierw tworzymy schematy „prg” i „teryt”:
-```
-psql -d gis -h localhost -p 25432 -U postgres -c "create schema prg;"
-```
-```
-psql -d gis -h localhost -p 25432 -U postgres -c "create schema teryt;"
-```
-Następnie przywracamy kilka wybranych tabel i indeksów do schematów public i prg:
+Przywracamy kilka wybranych tabel i indeksów do schematów public i prg:
 ```
 pg_restore --jobs 2 --no-owner -n public -d gis -h localhost -p 25432 -U postgres db.bak
 ```
@@ -168,30 +161,8 @@ IP podajemy dla kontenera od bazy danych (jeżeli baza była uruchamiana instruk
 
 Zwróć uwagę, że podajemy port, pod którym postgres jest uruchomiony w kontenerze, ponieważ kontenery rozmawiają ze sobą w jednej sieci wirtualnej, trochę inaczej niż kontener z hostem.
 
-#### Budowa kontenera
-Przechodzimy w konsoli do folderu gdzie mamy sklonowane repozytorium (do folderu gdzie jest Dockerfile) i uruchamiamy:
-```
-docker build -t gugik2osm .
-```
--t gugik2osm - oznacza nazwę dla naszego obrazu, można zmienić  
-. - oznacza obecną lokalizację  
-
-#### Uruchomienie kontenera
-Następnie uruchamiamy kontener (windows):
-```
-docker run --rm -p 45000:80 `
-  --mount type=bind,source=C:/Users/Tomasz/PycharmProjects/gugik2osm/app,target=/opt/gugik2osm/app `
-  --mount type=bind,source=C:/Users/Tomasz/PycharmProjects/gugik2osm/web,target=/opt/gugik2osm/web `
-  --mount type=bind,source=C:/Users/Tomasz/PycharmProjects/gugik2osm/processing,target=/opt/gugik2osm/git/processing `
-  -it gugik2osm
-```
---rm - powoduje że po wyłączeniu kontenera jest on automatycznie usuwany  
--p 45000:80 - mapowanie portów, numer po lewej oznacza pod jakim portem będziemy mogli się połączyć do kontenera z "zewnątrz" czyli naszej maszyny  
---mount type=bind,source=C:/Users/Tomasz/PycharmProjects/gugik2osm/app,target=/opt/gugik2osm/app - montuje katalog z naszej maszyny w określonym miejscu w kontenerze, trzeba podawać ścieżki absolutne, zmień lewą część na swoją ścieżkę, tak by prowadziła do folderów app, web i processing w sklonowanym repozytorium  
--it - przeciwieństwo -d, uruchamia kontener "na pierwszym planie", dzięki czemu będziemy mogli wykonywać w nim komendy w razie potrzeby  
-gugik2osm - nazwa obrazu, który zbudowaliśmy w poprzednim kroku  
-
-Po uruchomieniu kontenera odpali się terminal bash.
+#### Uruchomienie kontenera z aplikacją
+Aby uruchomić coś w kontenerze z aplikacją możesz użyć komendy `docker compose exec -it app bash`.
 
 #### Zmiana plików strony/aplikacji
 Ostatnią rzeczą, jaką powinniśmy zmienić, jest url dla serwera z kafelkami MVT.
@@ -213,7 +184,7 @@ var downloadable_layers_url = "http://localhost:45000/layers/";
 
 Wszystkie zmiany dla plików HTML/JS i Python powinny być automatycznie widoczne po odświeżeniu strony (rzeczy typu pliki js mogą wymagać odświeżenia wraz z usunięciem cache: ctrl+f5).
 
-W przeglądarce przejdź do http://localhost:45000 (lub pod innym portem zależnie od tego, co zostało ustawione w komendzie docker run).
+W przeglądarce przejdź do http://localhost:45000.
 
 #### Uruchamianie testów jednostkowych i integracyjnych
 Jeżeli pracujemy w systemie Windows, to możemy użyć pomocniczego skryptu PowerShell: run_local_tests_windows.ps1.
