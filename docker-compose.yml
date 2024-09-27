@@ -1,6 +1,7 @@
 services:
   app:
-    container_name: app
+    restart: always
+    container_name: gugik2osm-app
     build:
       context: .
       dockerfile: Dockerfile
@@ -17,7 +18,7 @@ services:
       - db
     environment:
       - PGDATABASE=gugik2osm
-      - PGHOSTADDR=db
+      - PGHOSTADDR=172.31.0.2
       - PGPORT=25432
       - PGUSER=postgres
       - PGUSER_RO=postgres
@@ -26,9 +27,9 @@ services:
       - TERYTUSER=''
       - TERYTPASSWORD=''
     networks:
-      - default
+      - gugik2osm
   db:
-    container_name: db
+    container_name: gugik2osm-db
     image: kartoza/postgis
     environment:
       - POSTGRES_USER=postgres
@@ -41,6 +42,7 @@ services:
     volumes:
       - ./setup-db.sql:/docker-entrypoint-initdb.d/setup-db.sql
     networks:
-      - default
-
-
+      - gugik2osm
+networks:
+  gugik2osm:
+    driver: bridge
